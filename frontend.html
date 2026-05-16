@@ -3,53 +3,53 @@
 <head>
     <title>Simple Form</title>
     <style>
-        body{
+        body {
             font-family: Arial;
-            display:flex;
-            justify-content:center;
-            align-items:center;
-            height:100vh;
-            background:#f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: #f4f4f4;
         }
 
-        .container{
-            background:white;
-            padding:30px;
-            border-radius:10px;
-            box-shadow:0 0 10px rgba(0,0,0,0.1);
+        .box {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
 
-        input{
-            padding:10px;
-            width:250px;
-            margin-bottom:10px;
-            border:1px solid #ccc;
-            border-radius:5px;
+        .field {
+            padding: 10px;
+            width: 250px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
         }
 
-        button{
-            padding:10px 20px;
-            border:none;
-            background:blue;
-            color:white;
-            border-radius:5px;
-            cursor:pointer;
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            background: blue;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
         }
 
-        button:hover{
-            background:darkblue;
+        .btn:hover {
+            background: darkblue;
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
+    <div class="box">
         <h2>Simple Form</h2>
 
-        <input type="text" placeholder="Enter your name">
+        <input class="field" type="text" placeholder="Enter your name">
         <br>
 
-        <button type="submit">Submit</button>
+        <button class="btn" type="submit">Submit</button>
     </div>
 
 </body>
