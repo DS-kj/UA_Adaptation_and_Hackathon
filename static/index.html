@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UAReady Validator — Nepal 2026</title>
+  <style>
+    :root {
+      --red:    #c0392b;
+      --red-dk: #922b21;
+      --blue:   #1a3a6b;
+      --bg:     #f4f6f9;
+      --card:   #ffffff;
+      --text:   #1e2d3d;
+      --muted:  #6b7280;
+      --valid:  #16a34a;
+      --invalid:#dc2626;
+      --border: #e2e8f0;
+      --tag-bg: #eff6ff;
+      --tag-fg: #1d4ed8;
+      --std-bg: #f0fdf4;
+      --std-fg: #15803d;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, 'Noto Sans Devanagari', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Header ──────────────────────────────────────────── */
+    header {
+      background: linear-gradient(135deg, var(--red) 0%, var(--red-dk) 60%, #7b241c 100%);
+      color: #fff;
+      padding: 20px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    header .brand h1 { font-size: 1.45rem; font-weight: 700; letter-spacing: -0.01em; }
+    header .brand p  { font-size: 0.78rem; opacity: 0.82; margin-top: 3px; }
+
+    .header-right { display: flex; align-items: center; gap: 12px; }
+    .flag { font-size: 1.5rem; }
+
+    .lang-select {
+      background: rgba(255,255,255,0.18);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.35);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.88rem;
+      cursor: pointer;
+    }
+    .lang-select option { background: #333; }
+
+    /* ── Layout ──────────────────────────────────────────── */
+    main {
+      max-width: 960px;
+      margin: 28px auto;
+      padding: 0 16px 40px;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 14px;
+      padding: 24px 28px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.07), 0 4px 16px rgba(0,0,0,0.04);
+      border: 1px solid var(--border);
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--blue);
+    }
+
+    /* ── Input row ───────────────────────────────────────── */
+    .input-row { display: flex; gap: 8px; }
+
+    .input-row input {
+      flex: 1;
+      padding: 11px 15px;
+      font-size: 1.05rem;
+      border: 2px solid var(--border);
+      border-radius: 9px;
+      outline: none;
+      font-family: inherit;
+      transition: border-color 0.18s;
+      color: var(--text);
+    }
+    .input-row input:focus { border-color: var(--red); }
+    .input-row input::placeholder { color: #aab; }
+
+    .btn {
+      padding: 11px 22px;
+      background: var(--red);
+      color: #fff;
+      border: none;
+      border-radius: 9px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.18s;
+      white-space: nowrap;
+    }
+    .btn:hover { background: var(--red-dk); }
+    .btn:disabled { opacity: 0.55; cursor: default; }
+
+    /* ── Result box ──────────────────────────────────────── */
+    .result {
+      margin-top: 16px;
+      padding: 16px 18px;
+      border-radius: 10px;
+      display: none;
+      animation: fadeIn 0.2s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; } }
+
+    .result.show   { display: block; }
+    .result.valid  { background: #f0fdf4; border: 1.5px solid #86efac; }
+    .result.invalid{ background: #fef2f2; border: 1.5px solid #fca5a5; }
+    .result.loading{ background: var(--bg); border: 1.5px solid var(--border); display: block; color: var(--muted); font-style: italic; }
+
+    .result-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.95rem;
+      font-weight: 800;
+      margin-bottom: 14px;
+    }
+    .result-badge.valid   { color: var(--valid); }
+    .result-badge.invalid { color: var(--invalid); }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .detail-item { display: flex; flex-direction: column; gap: 2px; }
+    .detail-label {
+      font-size: 0.68rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-weight: 600;
+    }
+    .detail-value {
+      font-family: 'Courier New', 'Cascadia Code', monospace;
+      font-size: 0.9rem;
+      word-break: break-all;
+      color: var(--text);
+    }
+
+    .tag-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .tag {
+      padding: 3px 11px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .tag.script { background: var(--tag-bg); color: var(--tag-fg); }
+    .tag.std    { background: var(--std-bg); color: var(--std-fg); border: 1px solid #bbf7d0; }
+
+    .error-msg { color: var(--invalid); font-weight: 600; font-size: 0.95rem; }
+
+    /* ── Examples grid ───────────────────────────────────── */
+    .examples-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 12px;
+    }
+
+    .example-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 8px;
+    }
+
+    .ex {
+      padding: 10px 14px;
+      border-radius: 9px;
+      border: 1.5px solid var(--border);
+      cursor: pointer;
+      transition: all 0.15s;
+      background: var(--bg);
+    }
+    .ex:hover { border-color: var(--red); background: #fff5f5; }
+    .ex.ex-invalid { border-color: #fca5a5; background: #fff5f5; }
+    .ex.ex-invalid:hover { border-color: var(--invalid); }
+
+    .ex-value { font-family: monospace; font-size: 0.88rem; word-break: break-all; }
+    .ex-meta  { font-size: 0.72rem; color: var(--muted); margin-top: 3px; }
+
+    /* ── SMTP section ────────────────────────────────────── */
+    .smtp-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+    @media (max-width: 500px) { .smtp-fields { grid-template-columns: 1fr; } }
+
+    .field-group { display: flex; flex-direction: column; gap: 4px; }
+    .field-label { font-size: 0.78rem; font-weight: 600; color: var(--muted); }
+    .field-input {
+      padding: 9px 12px;
+      font-size: 0.92rem;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      outline: none;
+      font-family: inherit;
+      transition: border-color 0.18s;
+    }
+    .field-input:focus { border-color: var(--red); }
+
+    /* ── Footer ──────────────────────────────────────────── */
+    footer {
+      text-align: center;
+      padding: 20px;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .standards-bar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+      justify-content: center;
+    }
+    .std-pill {
+      background: var(--blue);
+      color: #fff;
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <h1>&#127760; UAReady Email &amp; Domain Validator</h1>
+    <p>SMTPUTF8 &nbsp;&#183;&nbsp; EAI &nbsp;&#183;&nbsp; IDNA2008 &nbsp;&#183;&nbsp; Unicode NFC &nbsp;&mdash;&nbsp; UA Hackathon Nepal 2026</p>
+  </div>
+  <div class="header-right">
+    <span class="flag" title="Nepal">&#127475;&#127477;</span>
+    <select class="lang-select" id="lang-select" onchange="setLang(this.value)">
+      <option value="en">English</option>
+      <option value="ne">&#2344;&#2375;&#2346;&#2366;&#2354;&#2368;</option>
+      <option value="ar">&#1593;&#1585;&#1576;&#1610;</option>
+    </select>
+  </div>
+</header>
+
+<main>
+
+  <!-- Standards compliance bar -->
+  <div class="standards-bar">
+    <span class="std-pill">RFC 6531 SMTPUTF8</span>
+    <span class="std-pill">RFC 6532 EAI</span>
+    <span class="std-pill">IDNA2008</span>
+    <span class="std-pill">UTS#46</span>
+    <span class="std-pill">Unicode NFC</span>
+    <span class="std-pill">RFC 1035 DNS</span>
+  </div>
+
+  <!-- Email validator -->
+  <div class="card">
+    <div class="card-title">&#128231; <span data-i18n="email_title">Email Address Validation</span></div>
+    <div class="input-row">
+      <input type="text" id="email-input" placeholder="&#2352;&#2366;&#2350;@&#2344;&#2375;&#2346;&#2366;&#2354;.&#2344;&#2375;&#2346;&#2366;&#2354;" autocomplete="off" spellcheck="false" />
+      <button class="btn" id="email-btn" onclick="validateEmail()" data-i18n-btn>Validate</button>
+    </div>
+    <div class="result" id="email-result"></div>
+  </div>
+
+  <!-- Domain validator -->
+  <div class="card">
+    <div class="card-title">&#127758; <span data-i18n="domain_title">Domain Name Validation</span></div>
+    <div class="input-row">
+      <input type="text" id="domain-input" placeholder="&#2344;&#2375;&#2346;&#2366;&#2354;.&#2344;&#2375;&#2346;&#2366;&#2354;" autocomplete="off" spellcheck="false" />
+      <button class="btn" id="domain-btn" onclick="validateDomain()" data-i18n-btn>Validate</button>
+    </div>
+    <div class="result" id="domain-result"></div>
+  </div>
+
+  <!-- Examples -->
+  <div class="card">
+    <div class="examples-title" data-i18n="examples_title">Try These Examples</div>
+    <div class="example-grid" id="examples-grid"></div>
+  </div>
+
+  <!-- SMTP Capability Check -->
+  <div class="card">
+    <div class="card-title">&#128233; <span data-i18n="smtp_title">SMTP Server Capability Check</span></div>
+    <p style="font-size:0.85rem;color:var(--muted);margin-bottom:14px" data-i18n="smtp_desc">
+      Connect to an SMTP server and check whether it advertises the SMTPUTF8 extension (RFC 6531).
+    </p>
+    <div class="smtp-fields">
+      <div class="field-group">
+        <label class="field-label" data-i18n="smtp_host">SMTP Host</label>
+        <input class="field-input" id="smtp-host" placeholder="smtp.gmail.com" value="" />
+      </div>
+      <div class="field-group">
+        <label class="field-label" data-i18n="smtp_port">Port</label>
+        <input class="field-input" id="smtp-port" type="number" value="587" min="1" max="65535" />
+      </div>
+    </div>
+    <button class="btn" onclick="checkSmtp()" data-i18n-btn>Check Capability</button>
+    <div class="result" id="smtp-result"></div>
+  </div>
+
+</main>
+
+<footer>
+  <p>Built for <strong>UA Adaptation Hackathon Nepal 2026</strong> &mdash; &ldquo;The same email. Working everywhere, in every language.&rdquo;</p>
+</footer>
+
+<script>
+const API = '/api';
+let lang = 'en';
+
+const T = {
+  en: {
+    email_title:    'Email Address Validation',
+    domain_title:   'Domain Name Validation',
+    smtp_title:     'SMTP Server Capability Check',
+    smtp_desc:      'Connect to an SMTP server and check whether it advertises the SMTPUTF8 extension (RFC 6531).',
+    smtp_host:      'SMTP Host',
+    smtp_port:      'Port',
+    examples_title: 'Try These Examples',
+    btn_validate:   'Validate',
+    btn_check:      'Check Capability',
+    valid:    '&#10003; Valid',
+    invalid:  '&#10007; Invalid',
+    checking: 'Checking…',
+    normalized:   'Normalized',
+    ace_form:     'ACE / Punycode',
+    local_part:   'Local Part',
+    domain:       'Domain',
+    intl:         'Internationalized',
+    smtputf8:     'Requires SMTPUTF8',
+    labels:       'Label Count',
+    scripts:      'Scripts Detected',
+    standards:    'Standards',
+    error:        'Error',
+    yes: 'Yes', no: 'No',
+    ua_ready: 'UA-Ready',
+    extensions: 'SMTP Extensions',
+    reachable: 'Server Reachable',
+  },
+  ne: {
+    email_title:    'इमेल ठेगाना प्रमाणीकरण',
+    domain_title:   'डोमेन नाम प्रमाणीकरण',
+    smtp_title:     'SMTP सर्भर क्षमता जाँच',
+    smtp_desc:      'SMTP सर्भरमा जोडिनुहोस् र SMTPUTF8 एक्सटेन्सन छ कि छैन जाँच गर्नुहोस्।',
+    smtp_host:      'SMTP होस्ट',
+    smtp_port:      'पोर्ट',
+    examples_title: 'यी उदाहरणहरू प्रयास गर्नुहोस्',
+    btn_validate:   'प्रमाणित गर्नुहोस्',
+    btn_check:      'क्षमता जाँच गर्नुहोस्',
+    valid:    '&#10003; मान्य',
+    invalid:  '&#10007; अमान्य',
+    checking: 'जाँच गर्दै…',
+    normalized:   'सामान्यीकृत',
+    ace_form:     'ACE / Punycode',
+    local_part:   'स्थानीय भाग',
+    domain:       'डोमेन',
+    intl:         'अन्तर्राष्ट्रीय',
+    smtputf8:     'SMTPUTF8 चाहिन्छ',
+    labels:       'लेबल संख्या',
+    scripts:      'लिपिहरू पहिचान',
+    standards:    'मानकहरू',
+    error:        'त्रुटि',
+    yes: 'हो', no: 'होइन',
+    ua_ready: 'UA-तयार',
+    extensions: 'SMTP एक्सटेन्सनहरू',
+    reachable: 'सर्भर पहुँच्न योग्य',
+  },
+  ar: {
+    email_title:    'التحقق من عنوان البريد الإلكتروني',
+    domain_title:   'التحقق من اسم النطاق',
+    smtp_title:     'فحص قدرات SMTP',
+    smtp_desc:      'الاتصال بخادم SMTP والتحقق من دعم SMTPUTF8.',
+    smtp_host:      'خادم SMTP',
+    smtp_port:      'المنفذ',
+    examples_title: 'جرب هذه الأمثلة',
+    btn_validate:   'تحقق',
+    btn_check:      'فحص القدرات',
+    valid: '&#10003; صالح', invalid: '&#10007; غير صالح',
+    checking: 'جاري الفحص…',
+    normalized: 'معياري', ace_form: 'ACE / Punycode',
+    local_part: 'الجزء المحلي', domain: 'النطاق',
+    intl: 'دولي', smtputf8: 'يتطلب SMTPUTF8',
+    labels: 'عدد التسميات',
+    scripts: 'النصوص المكتشفة',
+    standards: 'المعايير', error: 'خطأ',
+    yes: 'نعم', no: 'لا',
+    ua_ready: 'UA-جاهز', extensions: 'امتدادات SMTP',
+    reachable: 'الخادم قابل للوصول',
+  },
+};
+
+function t(key) { return T[lang][key] ?? T.en[key] ?? key; }
+
+function setLang(l) {
+  lang = l;
+  document.documentElement.lang = l === 'ar' ? 'ar' : l === 'ne' ? 'ne' : 'en';
+  document.documentElement.dir  = l === 'ar' ? 'rtl' : 'ltr';
+
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.getAttribute('data-i18n');
+    if (T[lang][k]) el.innerHTML = T[lang][k];
+  });
+  document.querySelectorAll('[data-i18n-btn]').forEach(el => {
+    const isSmtp = el.closest('.card')?.querySelector('[data-i18n="smtp_title"]');
+    el.textContent = isSmtp ? t('btn_check') : t('btn_validate');
+  });
+}
+
+// ── Examples ────────────────────────────────────────────────────────────────
+const EXAMPLES = [
+  { v: 'राम@नेपाल.नेपाल',     t: 'email',  s: 'Devanagari — नेपाली',  ok: true  },
+  { v: 'सीता@डाक.नेपाल',    t: 'email',  s: 'Devanagari — नेपाली',  ok: true  },
+  { v: 'محمد@مثال.مصر',   t: 'email',  s: 'Arabic',             ok: true  },
+  { v: 'user@example.com',            t: 'email',  s: 'Latin ASCII',           ok: true  },
+  { v: 'user.name+tag@example.co.uk', t: 'email',  s: 'Latin ASCII (complex)', ok: true  },
+  { v: 'नेपाल.नेपाल',              t: 'domain', s: 'Devanagari IDN',     ok: true  },
+  { v: 'مثال.مصر',              t: 'domain', s: 'Arabic IDN',         ok: true  },
+  { v: 'xn--l2bey1c2b.xn--l2bey1c2b',t: 'domain', s: 'Punycode / ACE form',  ok: true  },
+  { v: 'notanemail',                  t: 'email',  s: '✗ No @ symbol',    ok: false },
+  { v: '@nodomain.com',               t: 'email',  s: '✗ Empty local part',ok: false },
+  { v: 'user@@two.at.com',            t: 'email',  s: '✗ Double @',       ok: false },
+  { v: 'domain..double.dot',          t: 'domain', s: '✗ Double dot',     ok: false },
+];
+
+function buildExamples() {
+  document.getElementById('examples-grid').innerHTML = EXAMPLES.map(ex => `
+    <div class="ex ${ex.ok ? '' : 'ex-invalid'}"
+         onclick="fillExample('${ex.t}', ${JSON.stringify(ex.v)})">
+      <div class="ex-value">${ex.v}</div>
+      <div class="ex-meta">${ex.t === 'email' ? '&#128231;' : '&#127758;'} ${ex.s}</div>
+    </div>
+  `).join('');
+}
+
+function fillExample(type, value) {
+  if (type === 'email') {
+    document.getElementById('email-input').value = value;
+    validateEmail();
+  } else {
+    document.getElementById('domain-input').value = value;
+    validateDomain();
+  }
+}
+
+// ── Validation calls ─────────────────────────────────────────────────────────
+function setResult(id, cls, html) {
+  const el = document.getElementById(id);
+  el.className = 'result ' + cls;
+  el.innerHTML = html;
+}
+
+async function validateEmail() {
+  const val = document.getElementById('email-input').value.trim();
+  if (!val) return;
+  setResult('email-result', 'loading', t('checking'));
+  try {
+    const r = await fetch(`${API}/validate/email`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ email: val, lang }),
+    }).then(r => r.json());
+    renderEmail(r);
+  } catch (e) {
+    setResult('email-result', 'invalid show', err(e.message));
+  }
+}
+
+async function validateDomain() {
+  const val = document.getElementById('domain-input').value.trim();
+  if (!val) return;
+  setResult('domain-result', 'loading', t('checking'));
+  try {
+    const r = await fetch(`${API}/validate/domain`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ domain: val, lang }),
+    }).then(r => r.json());
+    renderDomain(r);
+  } catch (e) {
+    setResult('domain-result', 'invalid show', err(e.message));
+  }
+}
+
+async function checkSmtp() {
+  const host = document.getElementById('smtp-host').value.trim();
+  const port = parseInt(document.getElementById('smtp-port').value, 10) || 587;
+  if (!host) return;
+  setResult('smtp-result', 'loading', t('checking'));
+  try {
+    const r = await fetch(`${API}/smtp/capability`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ host, port }),
+    }).then(r => r.json());
+    renderSmtp(r);
+  } catch (e) {
+    setResult('smtp-result', 'invalid show', err(e.message));
+  }
+}
+
+// ── Renderers ────────────────────────────────────────────────────────────────
+function renderEmail(d) {
+  if (!d.valid) {
+    setResult('email-result', 'invalid show', `<div class="result-badge invalid">${t('invalid')}</div><div class="error-msg">${t('error')}: ${esc(d.error)}</div>`);
+    return;
+  }
+  let html = `<div class="result-badge valid">${t('valid')}</div><div class="detail-grid">`;
+  html += cell(t('normalized'), d.normalized);
+  html += cell(t('local_part'), d.local_part);
+  html += cell(t('domain'),     d.domain);
+  if (d.ace_email) html += cell(t('ace_form'), d.ace_email);
+  html += cell(t('intl'),     d.is_internationalized ? t('yes') : t('no'));
+  html += cell(t('smtputf8'), d.requires_smtputf8   ? t('yes') : t('no'));
+  html += '</div>';
+  html += tags(d.scripts_detected, 'script');
+  html += tags(d.standards,        'std');
+  setResult('email-result', 'valid show', html);
+}
+
+function renderDomain(d) {
+  if (!d.valid) {
+    setResult('domain-result', 'invalid show', `<div class="result-badge invalid">${t('invalid')}</div><div class="error-msg">${t('error')}: ${esc(d.error)}</div>`);
+    return;
+  }
+  let html = `<div class="result-badge valid">${t('valid')}</div><div class="detail-grid">`;
+  html += cell(t('normalized'), d.normalized);
+  html += cell(t('ace_form'),   d.ace_form);
+  html += cell('Unicode',       d.unicode_form);
+  html += cell(t('labels'),     d.label_count);
+  html += cell(t('intl'),       d.is_internationalized ? t('yes') : t('no'));
+  html += '</div>';
+  html += tags(d.scripts_detected, 'script');
+  html += tags(d.standards,        'std');
+  setResult('domain-result', 'valid show', html);
+}
+
+function renderSmtp(d) {
+  if (!d.reachable) {
+    setResult('smtp-result', 'invalid show', `<div class="result-badge invalid">${t('invalid')}</div><div class="error-msg">${esc(d.error)}</div>`);
+    return;
+  }
+  const cls = d.supports_smtputf8 ? 'valid show' : 'invalid show';
+  const badge = d.supports_smtputf8
+    ? `<div class="result-badge valid">&#10003; ${t('ua_ready')} &mdash; SMTPUTF8 Supported</div>`
+    : `<div class="result-badge invalid">&#10007; SMTPUTF8 Not Advertised</div>`;
+  let html = badge + '<div class="detail-grid">';
+  html += cell(t('reachable'),   t('yes'));
+  html += cell('SMTPUTF8',       d.supports_smtputf8 ? t('yes') : t('no'));
+  html += cell('8BITMIME',       d.supports_8bitmime  ? t('yes') : t('no'));
+  html += '</div>';
+  if (d.extensions?.length) {
+    html += `<div class="tag-row"><span style="font-size:.72rem;color:var(--muted);margin-right:4px">${t('extensions')}:</span>`;
+    html += d.extensions.map(e => `<span class="tag std">${esc(e)}</span>`).join('');
+    html += '</div>';
+  }
+  setResult('smtp-result', cls, html);
+}
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+function cell(label, value) {
+  return `<div class="detail-item"><span class="detail-label">${label}</span><span class="detail-value">${esc(String(value ?? ''))}</span></div>`;
+}
+
+function tags(arr, cls) {
+  if (!arr?.length) return '';
+  return `<div class="tag-row">${arr.map(s => `<span class="tag ${cls}">${esc(s)}</span>`).join('')}</div>`;
+}
+
+function err(msg) {
+  return `<div class="result-badge invalid">${t('invalid')}</div><div class="error-msg">${esc(msg)}</div>`;
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  buildExamples();
+
+  document.getElementById('email-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') validateEmail();
+  });
+  document.getElementById('domain-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') validateDomain();
+  });
+});
+</script>
+
+</body>
+</html>
