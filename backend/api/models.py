@@ -22,6 +22,10 @@ class BatchRequest(BaseModel):
     lang: Literal["en", "ne", "ar"] = Field("en")
 
 
+class ContactRequest(BaseModel):
+    email: str = Field(..., examples=["user@example.com"])
+
+
 class SmtpCapabilityRequest(BaseModel):
     host: str = Field(..., examples=["smtp.gmail.com"])
     port: int = Field(587, ge=1, le=65535)

@@ -1,0 +1,18 @@
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      SMTP_HOST: ${SMTP_HOST:-mail.xn--11b2bu4dwd.xn--i1b6b1a6a2e}
+      SMTP_PORT: ${SMTP_PORT:-25}
+      SMTP_USER: ${SMTP_USER:-mailbox10}
+      SMTP_PASS: ${SMTP_PASS:-test8}
+      SMTP_FROM: ${SMTP_FROM:-test8@क्यान.संगठन}
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    restart: unless-stopped

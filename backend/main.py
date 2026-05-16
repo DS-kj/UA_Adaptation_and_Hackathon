@@ -1,8 +1,12 @@
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from api.routes import router
+
+STATIC_DIR = Path(__file__).parent / "static"
 
 app = FastAPI(
     title="UAReady Email & Domain Validator",
@@ -26,7 +30,7 @@ app.add_middleware(
 app.include_router(router, prefix="/api", tags=["Validation"])
 
 # Serve the browser demo at /  — must come last so API routes take priority
-app.mount("/", StaticFiles(directory="static", html=True), name="static")
+app.mount("/", StaticFiles(directory=str(STATIC_DIR), html=True), name="static")
 
 if __name__ == "__main__":
     import uvicorn

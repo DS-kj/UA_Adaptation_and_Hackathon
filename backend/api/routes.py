@@ -4,13 +4,14 @@ import ssl
 from email.headerregistry import Address
 from email.message import EmailMessage
 
-from fastapi import APIRouter
+from fastapi import APIRouter, BackgroundTasks
 from fastapi.responses import JSONResponse
 
 from validator import validate_domain_name, validate_email_address
 
 from .models import (
     BatchRequest,
+    ContactRequest,
     DomainRequest,
     EmailRequest,
     SmtpCapabilityRequest,
@@ -144,6 +145,51 @@ async def api_smtp_send(req: SmtpSendRequest) -> dict:
 
     result = await asyncio.get_event_loop().run_in_executor(None, _send)
     return result
+
+
+def _send_contact_email(to_addr: str) -> None:
+    import os
+    smtp_host = os.environ.get("SMTP_HOST", "mail.xn--11b2bu4dwd.xn--i1b6b1a6a2e")
+    smtp_port = int(os.environ.get("SMTP_PORT", "25"))
+    smtp_user = os.environ.get("SMTP_USER", "mailbox10")
+    smtp_pass = os.environ.get("SMTP_PASS", "test8")
+    from_addr = os.environ.get("SMTP_FROM", "test8@क्यान.संगठन")
+
+    msg = EmailMessage()
+    msg["Subject"] = "Thank you for contacting CAN InfoTech"
+    msg["From"]    = from_addr
+    msg["To"]      = to_addr
+    msg.set_content(
+        f"Dear User,\n\n"
+        f"Thank you for reaching out to CAN InfoTech.\n"
+        f"We have received your message at {to_addr} and will get back to you shortly.\n\n"
+        f"Best regards,\n"
+        f"CAN InfoTech Team\n"
+        f"Computer Association of Nepal"
+    )
+
+    try:
+        with smtplib.SMTP(smtp_host, smtp_port, timeout=10) as smtp:
+            smtp.ehlo()
+            if smtp.has_extn("STARTTLS"):
+                smtp.starttls(ssl.create_default_context())
+                smtp.ehlo()
+            if smtp_user:
+                smtp.login(smtp_user, smtp_pass)
+            mail_options = ["SMTPUTF8"] if smtp.has_extn("SMTPUTF8") else []
+            smtp.sendmail(from_addr, [to_addr], msg.as_bytes(), mail_options=mail_options)
+    except Exception:
+        pass  # best-effort — errors are silently dropped
+
+
+@router.post("/contact", summary="Contact Us — validate email and send confirmation")
+async def api_contact(req: ContactRequest, background_tasks: BackgroundTasks) -> dict:
+    result = validate_email_address(req.email)
+    if not result["valid"]:
+        return {"success": False, "error": result["error"]}
+
+    background_tasks.add_task(_send_contact_email, req.email)
+    return {"success": True, "to": req.email}
 
 
 @router.get("/health")
