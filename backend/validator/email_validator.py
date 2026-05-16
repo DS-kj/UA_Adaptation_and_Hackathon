@@ -25,14 +25,15 @@ def validate_email_address(email: str, lang: str = "en") -> dict:
         )
     except EmailNotValidError as exc:
         raw = str(exc).lower()
-        if "at sign" in raw or "@" in raw:
-            key = "missing_at"
-        elif "local" in raw and ("empty" in raw or "too long" in raw):
-            key = "empty_local" if "empty" in raw else "local_too_long"
-        elif "domain" in raw and "empty" in raw:
-            key = "empty_domain"
+        # check domain/IDNA errors first — their messages can contain "@" literally
+        if "idna" in raw or ("domain" in raw and "empty" in raw):
+            key = "empty_domain" if "empty" in raw else "invalid_domain"
         elif "domain" in raw:
             key = "invalid_domain"
+        elif "local" in raw and ("empty" in raw or "too long" in raw):
+            key = "empty_local" if "empty" in raw else "local_too_long"
+        elif "at sign" in raw or "@" in raw:
+            key = "missing_at"
         elif "control" in raw:
             key = "control_char"
         else:

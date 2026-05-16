@@ -1,8 +1,11 @@
+import logging
 import smtplib
 import ssl
 from email.message import EmailMessage
 
 from fastapi import APIRouter, BackgroundTasks
+
+log = logging.getLogger(__name__)
 
 from validator import validate_domain_name, validate_email_address
 
@@ -159,14 +162,15 @@ def _send_contact_email(to_addr: str) -> None:
         with smtplib.SMTP(smtp_host, smtp_port, timeout=10) as smtp:
             smtp.ehlo()
             if smtp.has_extn("STARTTLS"):
-                smtp.starttls(ssl.create_default_context())
+                smtp.starttls(context=ssl.create_default_context())
                 smtp.ehlo()
             if smtp_user:
                 smtp.login(smtp_user, smtp_pass)
             mail_options = ["SMTPUTF8"] if smtp.has_extn("SMTPUTF8") else []
             smtp.sendmail(from_addr, [to_addr], msg.as_bytes(), mail_options=mail_options)
-    except Exception:
-        pass  # best-effort, don't block the response
+            log.info("contact email sent to %s", to_addr)
+    except Exception as exc:
+        log.error("contact email failed for %s: %s", to_addr, exc)
 
 
 @router.post("/contact")

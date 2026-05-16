@@ -158,35 +158,49 @@
   document.getElementById('contact-form').addEventListener('submit', async function (e) {
     e.preventDefault();
 
-    const emailInput  = document.getElementById('email');
-    const errorEl     = document.getElementById('email-error');
-    const submitBtn   = document.getElementById('submit');
-    const value       = emailInput.value.trim();
+    const emailInput = document.getElementById('email');
+    const errorEl    = document.getElementById('email-error');
+    const submitBtn  = document.getElementById('submit');
+    const value      = emailInput.value.trim();
 
-    // Client-side format check
-    const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-    if (!valid) {
-      errorEl.textContent = 'Please enter a valid email address.';
+    if (!value) {
+      errorEl.textContent = 'Please enter your email address.';
       errorEl.classList.add('show');
       emailInput.style.borderColor = '#dc2626';
       return;
     }
 
-    errorEl.classList.remove('show');
-    submitBtn.value    = 'Sending...';
+    submitBtn.value    = 'Validating...';
     submitBtn.disabled = true;
+    errorEl.classList.remove('show');
 
+    let result;
     try {
-      await fetch(API, {
+      const resp = await fetch(API, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ email: value }),
       });
+      result = await resp.json();
     } catch (_) {
-      // email send is best-effort — redirect regardless
-    } finally {
-      window.location.href = '/success.html';
+      submitBtn.value    = 'Contact us';
+      submitBtn.disabled = false;
+      errorEl.textContent = 'Could not reach the server. Please try again.';
+      errorEl.classList.add('show');
+      return;
     }
+
+    if (!result.success) {
+      submitBtn.value    = 'Contact us';
+      submitBtn.disabled = false;
+      errorEl.textContent = result.error || 'Please enter a valid email address.';
+      errorEl.classList.add('show');
+      emailInput.style.borderColor = '#dc2626';
+      return;
+    }
+
+    // backend validated — email send is already running in background
+    window.location.href = '/success.html';
   });
 
   document.getElementById('email').addEventListener('input', function () {
