@@ -1,11 +1,8 @@
-import asyncio
 import smtplib
 import ssl
-from email.headerregistry import Address
 from email.message import EmailMessage
 
 from fastapi import APIRouter, BackgroundTasks
-from fastapi.responses import JSONResponse
 
 from validator import validate_domain_name, validate_email_address
 
@@ -21,17 +18,17 @@ from .models import (
 router = APIRouter()
 
 
-@router.post("/validate/email", summary="Validate an internationalised email address")
+@router.post("/validate/email")
 async def api_validate_email(req: EmailRequest) -> dict:
     return validate_email_address(req.email, req.lang)
 
 
-@router.post("/validate/domain", summary="Validate an internationalised domain name")
+@router.post("/validate/domain")
 async def api_validate_domain(req: DomainRequest) -> dict:
     return validate_domain_name(req.domain, req.lang)
 
 
-@router.post("/validate/batch", summary="Validate multiple emails and/or domains at once")
+@router.post("/validate/batch")
 async def api_validate_batch(req: BatchRequest) -> dict:
     results = []
     for item in req.items:
@@ -47,18 +44,15 @@ async def api_validate_batch(req: BatchRequest) -> dict:
     }
 
 
-@router.post("/smtp/capability", summary="Check if an SMTP server supports SMTPUTF8")
+@router.post("/smtp/capability")
 async def api_smtp_capability(req: SmtpCapabilityRequest) -> dict:
-    """
-    Connect to an SMTP server, issue EHLO, and report which extensions it advertises.
-    This tests RFC 6531 (SMTPUTF8) server-side support without sending any mail.
-    """
+    import asyncio
+
     def _check() -> dict:
         context = ssl.create_default_context()
         try:
             with smtplib.SMTP(req.host, req.port, timeout=req.timeout) as smtp:
                 smtp.ehlo()
-                # Attempt STARTTLS if available
                 if smtp.has_extn("STARTTLS"):
                     smtp.starttls(context=context)
                     smtp.ehlo()
@@ -79,17 +73,13 @@ async def api_smtp_capability(req: SmtpCapabilityRequest) -> dict:
         except Exception as exc:
             return {"reachable": False, "host": req.host, "port": req.port, "error": str(exc)}
 
-    result = await asyncio.get_event_loop().run_in_executor(None, _check)
-    return result
+    return await asyncio.get_event_loop().run_in_executor(None, _check)
 
 
-@router.post("/smtp/send-test", summary="Send a test email using SMTPUTF8")
+@router.post("/smtp/send-test")
 async def api_smtp_send(req: SmtpSendRequest) -> dict:
-    """
-    Send a test email using SMTPUTF8 to demonstrate end-to-end RFC 6531 compliance.
-    Requires credentials for an SMTPUTF8-capable outbound SMTP server.
-    """
-    # Validate both addresses first
+    import asyncio
+
     from_result = validate_email_address(req.from_addr)
     to_result = validate_email_address(req.to_addr)
 
@@ -104,7 +94,6 @@ async def api_smtp_send(req: SmtpSendRequest) -> dict:
         msg["From"] = req.from_addr
         msg["To"] = req.to_addr
         msg.set_content(req.body)
-        # Mark as UTF-8 body per RFC 6532
         msg.set_charset("utf-8")
 
         context = ssl.create_default_context()
@@ -118,11 +107,10 @@ async def api_smtp_send(req: SmtpSendRequest) -> dict:
                 if not smtp.has_extn("SMTPUTF8"):
                     return {
                         "sent": False,
-                        "error": f"Server {req.host}:{req.port} does not advertise SMTPUTF8 — cannot send internationalised addresses",
+                        "error": f"{req.host}:{req.port} does not advertise SMTPUTF8",
                     }
 
                 smtp.login(req.username, req.password)
-                # mail_options=["SMTPUTF8"] is the key RFC 6531 addition
                 smtp.sendmail(
                     req.from_addr,
                     [req.to_addr],
@@ -137,14 +125,13 @@ async def api_smtp_send(req: SmtpSendRequest) -> dict:
                     "standards": ["RFC 6531 (SMTPUTF8)", "RFC 6532 (EAI)"],
                 }
         except smtplib.SMTPAuthenticationError:
-            return {"sent": False, "error": "SMTP authentication failed — check username/password"}
+            return {"sent": False, "error": "SMTP authentication failed"}
         except smtplib.SMTPException as exc:
-            return {"sent": False, "error": f"SMTP error: {exc}"}
+            return {"sent": False, "error": str(exc)}
         except Exception as exc:
             return {"sent": False, "error": str(exc)}
 
-    result = await asyncio.get_event_loop().run_in_executor(None, _send)
-    return result
+    return await asyncio.get_event_loop().run_in_executor(None, _send)
 
 
 def _send_contact_email(to_addr: str) -> None:
@@ -179,10 +166,10 @@ def _send_contact_email(to_addr: str) -> None:
             mail_options = ["SMTPUTF8"] if smtp.has_extn("SMTPUTF8") else []
             smtp.sendmail(from_addr, [to_addr], msg.as_bytes(), mail_options=mail_options)
     except Exception:
-        pass  # best-effort — errors are silently dropped
+        pass  # best-effort, don't block the response
 
 
-@router.post("/contact", summary="Contact Us — validate email and send confirmation")
+@router.post("/contact")
 async def api_contact(req: ContactRequest, background_tasks: BackgroundTasks) -> dict:
     result = validate_email_address(req.email)
     if not result["valid"]:

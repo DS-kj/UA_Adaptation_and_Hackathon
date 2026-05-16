@@ -31,7 +31,7 @@
       min-height: 100vh;
     }
 
-    /* ── Header ──────────────────────────────────────────── */
+    /* header */
     header {
       background: linear-gradient(135deg, var(--red) 0%, var(--red-dk) 60%, #7b241c 100%);
       color: #fff;
@@ -59,7 +59,7 @@
     }
     .lang-select option { background: #333; }
 
-    /* ── Layout ──────────────────────────────────────────── */
+    /* layout */
     main {
       max-width: 960px;
       margin: 28px auto;
@@ -85,7 +85,7 @@
       color: var(--blue);
     }
 
-    /* ── Input row ───────────────────────────────────────── */
+    /* input row */
     .input-row { display: flex; gap: 8px; }
 
     .input-row input {
@@ -117,7 +117,7 @@
     .btn:hover { background: var(--red-dk); }
     .btn:disabled { opacity: 0.55; cursor: default; }
 
-    /* ── Result box ──────────────────────────────────────── */
+    /* result box */
     .result {
       margin-top: 16px;
       padding: 16px 18px;
@@ -176,7 +176,7 @@
 
     .error-msg { color: var(--invalid); font-weight: 600; font-size: 0.95rem; }
 
-    /* ── Examples grid ───────────────────────────────────── */
+    /* examples grid */
     .examples-title {
       font-size: 0.78rem;
       font-weight: 700;
@@ -207,7 +207,7 @@
     .ex-value { font-family: monospace; font-size: 0.88rem; word-break: break-all; }
     .ex-meta  { font-size: 0.72rem; color: var(--muted); margin-top: 3px; }
 
-    /* ── SMTP section ────────────────────────────────────── */
+    /* smtp section */
     .smtp-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
     @media (max-width: 500px) { .smtp-fields { grid-template-columns: 1fr; } }
 
@@ -224,7 +224,7 @@
     }
     .field-input:focus { border-color: var(--red); }
 
-    /* ── Footer ──────────────────────────────────────────── */
+    /* footer */
     footer {
       text-align: center;
       padding: 20px;
@@ -254,11 +254,10 @@
 
 <header>
   <div class="brand">
-    <h1>&#127760; UAReady Email &amp; Domain Validator</h1>
+    <h1>UAReady Email &amp; Domain Validator</h1>
     <p>SMTPUTF8 &nbsp;&#183;&nbsp; EAI &nbsp;&#183;&nbsp; IDNA2008 &nbsp;&#183;&nbsp; Unicode NFC &nbsp;&mdash;&nbsp; UA Hackathon Nepal 2026</p>
   </div>
   <div class="header-right">
-    <span class="flag" title="Nepal">&#127475;&#127477;</span>
     <select class="lang-select" id="lang-select" onchange="setLang(this.value)">
       <option value="en">English</option>
       <option value="ne">&#2344;&#2375;&#2346;&#2366;&#2354;&#2368;</option>
@@ -269,7 +268,7 @@
 
 <main>
 
-  <!-- Standards compliance bar -->
+  <!-- standards -->
   <div class="standards-bar">
     <span class="std-pill">RFC 6531 SMTPUTF8</span>
     <span class="std-pill">RFC 6532 EAI</span>
@@ -279,9 +278,9 @@
     <span class="std-pill">RFC 1035 DNS</span>
   </div>
 
-  <!-- Email validator -->
+  <!-- email -->
   <div class="card">
-    <div class="card-title">&#128231; <span data-i18n="email_title">Email Address Validation</span></div>
+    <div class="card-title"><span data-i18n="email_title">Email Address Validation</span></div>
     <div class="input-row">
       <input type="text" id="email-input" placeholder="&#2352;&#2366;&#2350;@&#2344;&#2375;&#2346;&#2366;&#2354;.&#2344;&#2375;&#2346;&#2366;&#2354;" autocomplete="off" spellcheck="false" />
       <button class="btn" id="email-btn" onclick="validateEmail()" data-i18n-btn>Validate</button>
@@ -289,9 +288,9 @@
     <div class="result" id="email-result"></div>
   </div>
 
-  <!-- Domain validator -->
+  <!-- domain -->
   <div class="card">
-    <div class="card-title">&#127758; <span data-i18n="domain_title">Domain Name Validation</span></div>
+    <div class="card-title"><span data-i18n="domain_title">Domain Name Validation</span></div>
     <div class="input-row">
       <input type="text" id="domain-input" placeholder="&#2344;&#2375;&#2346;&#2366;&#2354;.&#2344;&#2375;&#2346;&#2366;&#2354;" autocomplete="off" spellcheck="false" />
       <button class="btn" id="domain-btn" onclick="validateDomain()" data-i18n-btn>Validate</button>
@@ -299,15 +298,15 @@
     <div class="result" id="domain-result"></div>
   </div>
 
-  <!-- Examples -->
+  <!-- examples -->
   <div class="card">
     <div class="examples-title" data-i18n="examples_title">Try These Examples</div>
     <div class="example-grid" id="examples-grid"></div>
   </div>
 
-  <!-- SMTP Capability Check -->
+  <!-- smtp -->
   <div class="card">
-    <div class="card-title">&#128233; <span data-i18n="smtp_title">SMTP Server Capability Check</span></div>
+    <div class="card-title"><span data-i18n="smtp_title">SMTP Server Capability Check</span></div>
     <p style="font-size:0.85rem;color:var(--muted);margin-bottom:14px" data-i18n="smtp_desc">
       Connect to an SMTP server and check whether it advertises the SMTPUTF8 extension (RFC 6531).
     </p>
@@ -433,7 +432,7 @@ function setLang(l) {
   });
 }
 
-// ── Examples ────────────────────────────────────────────────────────────────
+// examples
 const EXAMPLES = [
   { v: 'राम@नेपाल.नेपाल',     t: 'email',  s: 'Devanagari — नेपाली',  ok: true  },
   { v: 'सीता@डाक.नेपाल',    t: 'email',  s: 'Devanagari — नेपाली',  ok: true  },
@@ -443,10 +442,10 @@ const EXAMPLES = [
   { v: 'नेपाल.नेपाल',              t: 'domain', s: 'Devanagari IDN',     ok: true  },
   { v: 'مثال.مصر',              t: 'domain', s: 'Arabic IDN',         ok: true  },
   { v: 'xn--l2bey1c2b.xn--l2bey1c2b',t: 'domain', s: 'Punycode / ACE form',  ok: true  },
-  { v: 'notanemail',                  t: 'email',  s: '✗ No @ symbol',    ok: false },
-  { v: '@nodomain.com',               t: 'email',  s: '✗ Empty local part',ok: false },
-  { v: 'user@@two.at.com',            t: 'email',  s: '✗ Double @',       ok: false },
-  { v: 'domain..double.dot',          t: 'domain', s: '✗ Double dot',     ok: false },
+  { v: 'notanemail',                  t: 'email',  s: 'invalid: no @ sign',      ok: false },
+  { v: '@nodomain.com',               t: 'email',  s: 'invalid: empty local',    ok: false },
+  { v: 'user@@two.at.com',            t: 'email',  s: 'invalid: double @',       ok: false },
+  { v: 'domain..double.dot',          t: 'domain', s: 'invalid: double dot',     ok: false },
 ];
 
 function buildExamples() {
@@ -469,7 +468,7 @@ function fillExample(type, value) {
   }
 }
 
-// ── Validation calls ─────────────────────────────────────────────────────────
+// validation
 function setResult(id, cls, html) {
   const el = document.getElementById(id);
   el.className = 'result ' + cls;
@@ -525,7 +524,7 @@ async function checkSmtp() {
   }
 }
 
-// ── Renderers ────────────────────────────────────────────────────────────────
+// renderers
 function renderEmail(d) {
   if (!d.valid) {
     setResult('email-result', 'invalid show', `<div class="result-badge invalid">${t('invalid')}</div><div class="error-msg">${t('error')}: ${esc(d.error)}</div>`);
@@ -583,7 +582,7 @@ function renderSmtp(d) {
   setResult('smtp-result', cls, html);
 }
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+// helpers
 function cell(label, value) {
   return `<div class="detail-item"><span class="detail-label">${label}</span><span class="detail-value">${esc(String(value ?? ''))}</span></div>`;
 }
@@ -601,7 +600,7 @@ function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-// ── Init ─────────────────────────────────────────────────────────────────────
+// init
 document.addEventListener('DOMContentLoaded', () => {
   buildExamples();
 

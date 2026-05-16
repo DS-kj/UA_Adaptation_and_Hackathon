@@ -27,7 +27,6 @@ SCRIPT_RANGES: list[tuple[str, int, int]] = [
 
 
 def detect_scripts(text: str) -> list[str]:
-    """Return sorted list of Unicode script names found in text."""
     detected: set[str] = set()
     has_ascii_alpha = False
 

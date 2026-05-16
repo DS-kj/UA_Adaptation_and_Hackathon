@@ -8,17 +8,7 @@ from api.routes import router
 
 STATIC_DIR = Path(__file__).parent / "static"
 
-app = FastAPI(
-    title="UAReady Email & Domain Validator",
-    description=(
-        "Validates internationalised email addresses and domain names conforming to "
-        "SMTPUTF8 (RFC 6531), EAI (RFC 6532), and IDNA2008 standards. "
-        "Built for UA Adaptation Hackathon Nepal 2026."
-    ),
-    version="1.0.0",
-    contact={"name": "UA Hackathon Nepal 2026", "url": "https://icann.org/ua"},
-    license_info={"name": "MIT"},
-)
+app = FastAPI(title="UAReady Validator", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -27,9 +17,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(router, prefix="/api", tags=["Validation"])
+app.include_router(router, prefix="/api")
 
-# Serve the browser demo at /  — must come last so API routes take priority
+# static mount must come after API routes or it catches everything
 app.mount("/", StaticFiles(directory=str(STATIC_DIR), html=True), name="static")
 
 if __name__ == "__main__":
